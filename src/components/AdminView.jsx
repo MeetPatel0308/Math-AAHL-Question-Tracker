@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './AdminView.css';
 import { db } from '../lib/firebase';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 
 export default function AdminView({ appData, topicsList }) {
   // Topic
@@ -56,9 +56,9 @@ export default function AdminView({ appData, topicsList }) {
     
     try {
       const dataRef = doc(db, 'trackerData', 'main');
-      await updateDoc(dataRef, {
+      await setDoc(dataRef, {
         topics: [...topicsList, newTopic.trim()]
-      });
+      }, { merge: true });
       setNewTopic('');
     } catch (err) {
       console.error("Error adding topic:", err);
@@ -99,9 +99,9 @@ export default function AdminView({ appData, topicsList }) {
     try {
       const dataRef = doc(db, 'trackerData', 'main');
       const updatedData = [newYearData, ...appData].sort((a,b) => b.year - a.year);
-      await updateDoc(dataRef, {
+      await setDoc(dataRef, {
         appData: updatedData
-      });
+      }, { merge: true });
       setNewYear('');
       if (!qYear) setQYear(yearInt);
     } catch (err) {
@@ -164,9 +164,9 @@ export default function AdminView({ appData, topicsList }) {
 
     try {
       const dataRef = doc(db, 'trackerData', 'main');
-      await updateDoc(dataRef, {
+      await setDoc(dataRef, {
         appData: newAppdata
-      });
+      }, { merge: true });
       
       setQNum('');
       setQTopics([]);
