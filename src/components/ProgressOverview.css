@@ -1,0 +1,83 @@
+.progress-overview {
+  padding: 24px;
+  margin-bottom: 32px;
+}
+
+.progress-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.progress-text h2 {
+  font-size: 24px;
+  margin-bottom: 4px;
+}
+
+.progress-text p {
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+
+.stats-container {
+  display: flex;
+  gap: 16px;
+}
+
+.stat-box {
+  background: var(--bg-secondary);
+  border: 1px solid var(--bg-tertiary);
+  padding: 12px 20px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 80px;
+}
+
+.stat-num {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 4px;
+}
+
+.stat-box.completed .stat-num {
+  color: var(--success-color);
+}
+
+.stat-box.review .stat-num {
+  color: var(--warning-color);
+}
+
+.progress-circle-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.progress-ring {
+  transform: rotate(-90deg);
+}
+
+.progress-ring__circle {
+  transition: stroke-dashoffset 0.5s ease-in-out;
+  stroke-linecap: round;
+}
+
+.progress-percentage {
+  position: absolute;
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text-primary);
+}

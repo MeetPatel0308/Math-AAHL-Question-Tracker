@@ -1,0 +1,67 @@
+.year-accordion {
+  margin-bottom: 24px;
+  overflow: hidden;
+  transition: all var(--transition-normal);
+}
+
+.accordion-header {
+  padding: 20px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.accordion-header:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.accordion-header h3 {
+  font-size: 20px;
+  color: var(--accent-color);
+}
+
+.toggle-icon {
+  font-size: 24px;
+  font-weight: 300;
+  color: var(--text-muted);
+}
+
+.accordion-content {
+  padding: 0 24px 24px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+.series-section {
+  margin-top: 24px;
+}
+
+.series-title {
+  font-size: 18px;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+  display: inline-block;
+  padding-bottom: 4px;
+  border-bottom: 2px solid var(--accent-color);
+}
+
+.timezone-section {
+  margin-bottom: 20px;
+  background: rgba(0,0,0,0.2);
+  padding: 20px;
+  border-radius: var(--radius-sm);
+}
+
+.timezone-title {
+  font-size: 14px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 16px;
+}
+
+.papers-container {
+  display: flex;
+  flex-direction: column;
+}
