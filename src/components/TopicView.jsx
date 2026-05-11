@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import './TopicView.css';
 import '../components/PaperView.css'; // Re-use the question button styles
+import './TopicView.css';
 
 export default function TopicView({ appData, topicsList, progress, onToggleStatus }) {
   const [openTopic, setOpenTopic] = useState(null);
