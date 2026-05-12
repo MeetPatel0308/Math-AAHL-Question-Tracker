@@ -20,6 +20,9 @@ export default function AdminView({ appData, topicsList }) {
   const [qTopics, setQTopics] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
 
+  // Bulk Import
+  const [bulkJson, setBulkJson] = useState('');
+
   useEffect(() => {
     setIsEditing(false);
     if (!qYear || !qNum) return;
@@ -178,6 +181,54 @@ export default function AdminView({ appData, topicsList }) {
     }
   };
 
+  const handleBulkImport = async (e) => {
+    e.preventDefault();
+    if (!bulkJson.trim()) return;
+    
+    try {
+      const parsed = JSON.parse(bulkJson);
+      if (!Array.isArray(parsed)) throw new Error("Input must be a JSON array.");
+
+      let newAppdata = JSON.parse(JSON.stringify(appData));
+
+      for (const q of parsed) {
+        let yearObj = newAppdata.find(y => y.year === parseInt(q.year));
+        if (!yearObj) continue;
+        let seriesObj = yearObj.seriesList.find(s => s.series === q.series);
+        if (!seriesObj) continue;
+        let tzObj = seriesObj.timezones.find(t => t.timezone === q.timezone);
+        if (!tzObj) continue;
+        let paperObj = tzObj.papers.find(p => p.paperName === q.paperName);
+        if (!paperObj) continue;
+
+        const newQ = {
+          id: `${q.year}-${q.series}-${q.timezone}-${q.paperName.replace(" ", "")}-Q${q.number}`,
+          number: parseInt(q.number),
+          section: q.section || "N/A",
+          topics: q.topics || [],
+          metadata: { year: parseInt(q.year), series: q.series, timezone: q.timezone, paperName: q.paperName }
+        };
+
+        const existingIndex = paperObj.questions.findIndex(eq => eq.id === newQ.id);
+        if (existingIndex !== -1) {
+          paperObj.questions[existingIndex] = newQ;
+        } else {
+          paperObj.questions.push(newQ);
+        }
+        paperObj.questions.sort((a, b) => a.number - b.number);
+      }
+
+      const dataRef = doc(db, 'trackerData', 'main');
+      await setDoc(dataRef, { appData: newAppdata }, { merge: true });
+      
+      setBulkJson('');
+      alert(`Bulk import successful! Processed ${parsed.length} questions.`);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to import: " + err.message);
+    }
+  };
+
   return (
     <div className="admin-view">
       <h2>Admin Panel</h2>
@@ -230,7 +281,11 @@ export default function AdminView({ appData, topicsList }) {
               </div>
               <div className="form-group">
                 <label>Series</label>
-                <select value={qSeries} onChange={e => setQSeries(e.target.value)} className="admin-input">
+                <select value={qSeries} onChange={e => {
+                  const newSeries = e.target.value;
+                  setQSeries(newSeries);
+                  setQTimezone(newSeries === 'November' ? 'TZ0' : 'TZ1');
+                }} className="admin-input">
                   <option value="May">May</option>
                   <option value="November">November</option>
                 </select>
