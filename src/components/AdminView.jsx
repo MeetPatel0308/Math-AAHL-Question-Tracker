@@ -250,6 +250,38 @@ export default function AdminView({ appData, topicsList }) {
     }
   };
 
+  const handleDeleteQuestionById = async (questionId) => {
+    if (!window.confirm(`Delete question "${questionId}"? This cannot be undone.`)) return;
+
+    const newAppdata = JSON.parse(JSON.stringify(appData));
+    let deleted = false;
+    for (const yearObj of newAppdata) {
+      for (const seriesObj of yearObj.seriesList) {
+        for (const tzObj of seriesObj.timezones) {
+          for (const paperObj of tzObj.papers) {
+            const before = paperObj.questions.length;
+            paperObj.questions = paperObj.questions.filter(q => q.id !== questionId);
+            if (paperObj.questions.length < before) deleted = true;
+          }
+        }
+      }
+    }
+
+    if (!deleted) { alert('Question not found.'); return; }
+
+    try {
+      const dataRef = doc(db, 'trackerData', 'main');
+      await setDoc(dataRef, { appData: newAppdata }, { merge: true });
+      setQNum('');
+      setQTopics([]);
+      setIsEditing(false);
+      alert(`Deleted "${questionId}" successfully!`);
+    } catch (err) {
+      console.error('Error deleting question:', err);
+      alert('Failed to delete question.');
+    }
+  };
+
   const handleBulkImport = async (e) => {
     e.preventDefault();
     if (!bulkJson.trim()) return;
@@ -438,6 +470,43 @@ export default function AdminView({ appData, topicsList }) {
               )}
             </div>
           </form>
+
+          {/* Live paper contents */}
+          {(() => {
+            const yearObj = appData.find(y => y.year.toString() === qYear.toString());
+            const seriesObj = yearObj?.seriesList.find(s => s.series === qSeries);
+            const tzObj = seriesObj?.timezones.find(t => t.timezone === qTimezone);
+            const paperObj = tzObj?.papers.find(p => p.paperName === qPaper);
+            const qs = paperObj?.questions || [];
+            return (
+              <div className="paper-question-list">
+                <h4 className="pql-heading">
+                  Questions in {qYear} {qSeries} {qTimezone} {qPaper}
+                  <span className="pql-count">{qs.length}</span>
+                </h4>
+                {qs.length === 0 ? (
+                  <p className="pql-empty">No questions found for this selection.</p>
+                ) : (
+                  <ul className="pql-list">
+                    {qs.map(q => (
+                      <li key={q.id} className="pql-item">
+                        <div className="pql-info">
+                          <span className="pql-id">{q.id}</span>
+                          <span className="pql-topics">{q.topics?.join(', ') || 'No topics'}</span>
+                        </div>
+                        <button
+                          type="button"
+                          className="pql-delete-btn"
+                          onClick={() => handleDeleteQuestionById(q.id)}
+                          title="Delete this question"
+                        >×</button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            );
+          })()}
         </div>
       </div>
     </div>
