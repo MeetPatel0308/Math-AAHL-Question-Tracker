@@ -114,11 +114,27 @@ export default function AdminView({ appData, topicsList }) {
   };
 
   const handleDeleteTopic = async (topic) => {
-    if (!window.confirm(`Delete topic "${topic}"? This won't remove it from existing questions.`)) return;
+    if (!window.confirm(`Delete topic "${topic}"? It will also be removed from all existing questions.`)) return;
     try {
+      // Strip topic from every question in appData
+      const newAppdata = JSON.parse(JSON.stringify(appData));
+      for (const yearObj of newAppdata) {
+        for (const seriesObj of yearObj.seriesList) {
+          for (const tzObj of seriesObj.timezones) {
+            for (const paperObj of tzObj.papers) {
+              paperObj.questions = paperObj.questions.map(q => ({
+                ...q,
+                topics: q.topics.filter(t => t !== topic)
+              }));
+            }
+          }
+        }
+      }
+
       const dataRef = doc(db, 'trackerData', 'main');
       await setDoc(dataRef, {
-        topics: topicsList.filter(t => t !== topic)
+        topics: topicsList.filter(t => t !== topic),
+        appData: newAppdata
       }, { merge: true });
     } catch (err) {
       console.error('Error deleting topic:', err);
