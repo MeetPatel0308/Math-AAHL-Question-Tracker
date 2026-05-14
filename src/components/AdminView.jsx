@@ -113,6 +113,59 @@ export default function AdminView({ appData, topicsList }) {
     }
   };
 
+  const handleDeleteTopic = async (topic) => {
+    if (!window.confirm(`Delete topic "${topic}"? This won't remove it from existing questions.`)) return;
+    try {
+      const dataRef = doc(db, 'trackerData', 'main');
+      await setDoc(dataRef, {
+        topics: topicsList.filter(t => t !== topic)
+      }, { merge: true });
+    } catch (err) {
+      console.error('Error deleting topic:', err);
+      alert('Failed to delete topic.');
+    }
+  };
+
+  const handleDeleteQuestion = async (e) => {
+    e.preventDefault();
+    if (!qYear || !qNum) {
+      alert('Please select a year and enter a question number.');
+      return;
+    }
+
+    const targetId = `${qYear}-${qSeries}-${qTimezone}-${qPaper.replace(' ', '')}-Q${qNum}`;
+    if (!window.confirm(`Delete question ${targetId}? This cannot be undone.`)) return;
+
+    const newAppdata = JSON.parse(JSON.stringify(appData));
+    const yearObj = newAppdata.find(y => y.year.toString() === qYear.toString());
+    if (!yearObj) return alert('Year not found');
+    const seriesObj = yearObj.seriesList.find(s => s.series === qSeries);
+    if (!seriesObj) return alert('Series not found');
+    const tzObj = seriesObj.timezones.find(t => t.timezone === qTimezone);
+    if (!tzObj) return alert('Timezone not found in series');
+    const paperObj = tzObj.papers.find(p => p.paperName === qPaper);
+    if (!paperObj) return alert('Paper not found');
+
+    const before = paperObj.questions.length;
+    paperObj.questions = paperObj.questions.filter(q => q.id !== targetId);
+    if (paperObj.questions.length === before) {
+      alert('Question not found — nothing was deleted.');
+      return;
+    }
+
+    try {
+      const dataRef = doc(db, 'trackerData', 'main');
+      await setDoc(dataRef, { appData: newAppdata }, { merge: true });
+      setQNum('');
+      setQTopics([]);
+      setIsEditing(false);
+      alert(`Deleted Q${qNum} successfully!`);
+    } catch (err) {
+      console.error('Error deleting question:', err);
+      alert('Failed to delete question.');
+    }
+  };
+
   const handleTopicToggle = (topic) => {
     if (qTopics.includes(topic)) {
       setQTopics(qTopics.filter(t => t !== topic));
@@ -248,7 +301,17 @@ export default function AdminView({ appData, topicsList }) {
             <button type="submit" className="admin-btn">Add Topic</button>
           </form>
           <div className="current-topics">
-            {topicsList.map(t => <span key={t} className="topic-badge">{t}</span>)}
+            {topicsList.map(t => (
+              <span key={t} className="topic-badge">
+                {t}
+                <button
+                  className="topic-badge-delete"
+                  onClick={() => handleDeleteTopic(t)}
+                  title={`Delete "${t}"`}
+                  type="button"
+                >×</button>
+              </span>
+            ))}
           </div>
         </div>
 
@@ -344,9 +407,20 @@ export default function AdminView({ appData, topicsList }) {
               </div>
             </div>
 
-            <button type="submit" className="admin-btn add-q-btn">
-              {isEditing ? 'Update Question' : 'Save Question'}
-            </button>
+            <div className="form-btn-row">
+              <button type="submit" className="admin-btn add-q-btn">
+                {isEditing ? 'Update Question' : 'Save Question'}
+              </button>
+              {isEditing && (
+                <button
+                  type="button"
+                  className="admin-btn delete-q-btn"
+                  onClick={handleDeleteQuestion}
+                >
+                  Delete Question
+                </button>
+              )}
+            </div>
           </form>
         </div>
       </div>
